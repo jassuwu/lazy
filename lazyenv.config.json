@@ -5,9 +5,9 @@
   },
   "dest": {
     "paths": [
-      "~/repos/p2pdotme/broker-ui",
-      "~/repos/p2pdotme/user-app",
-      "~/repos/p2pdotme/merchant-app"
+      "~/repos/personal/broker-ui/.env",
+      "~/repos/personal/user-app/.env",
+      "~/repos/personal/merchant-app/.env"
     ],
     "envMapping": {
       "merchantRegistryAddress": "VITE_MERCHANT_REGISTRY",

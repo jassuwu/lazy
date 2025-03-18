@@ -34,6 +34,7 @@ func main() {
 	config := LazyEnvConfig{}
 	err = json.Unmarshal(buf, &config)
 	assert.Nil(err, "couldn't unmarshal config json")
+	fmt.Println("- read the configuration")
 
 	// Go doesn't understand tilde. So need to expand just in case.
 	src, err := os.ReadFile(utils.ExpandTilde(config.Src.Path))
@@ -42,6 +43,14 @@ func main() {
 	contractAddresses := make(map[string]string)
 	err = json.Unmarshal(src, &contractAddresses)
 	assert.Nil(err, "couldn't unmarshal src json")
+	fmt.Println("- read the src contract-addresses.json")
 
-	fmt.Println(contractAddresses)
+	fmt.Println("- reading the destination paths:")
+	for _, path := range config.Dest.Paths {
+		fmt.Println("-- reading:", path)
+		dest, err := os.ReadFile(utils.ExpandTilde(path))
+		assert.Nil(err, "dest contract addresses file couldn't be opened.")
+
+		fmt.Println(string(dest))
+	}
 }
