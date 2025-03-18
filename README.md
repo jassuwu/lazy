@@ -8,7 +8,7 @@ cli tool to non-destructively set `.env` vars @ P2P.me from contracts deployment
 - [x] Setup assert internals
 - [x] Read from a config
 - [x] Read the env vars from source repo's using what method? REGEX? It's a JSON. Just Unmarshal.
-- [ ] Have it in some kind of structure in memory. PROLLY A MAP.
+- [x] Have it in some kind of structure in memory. PROLLY A MAP.
 - [ ] Read the dest .env files one by one. Find the best way to structure the content.
 - [ ] Comment out the currently used env variables in the envMapping
 - [ ] Add a new env entry for all the vars in the envMapping - w/ some metadata like chain, date, etc.
