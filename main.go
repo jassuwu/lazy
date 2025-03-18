@@ -6,7 +6,8 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	assert "github.com/jassuwu/lazyenv/internal/assert"
+	"github.com/jassuwu/lazyenv/internal/assert"
+	"github.com/jassuwu/lazyenv/internal/utils"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -32,7 +33,15 @@ func main() {
 
 	config := LazyEnvConfig{}
 	err = json.Unmarshal(buf, &config)
-	assert.Nil(err, "couldn't unmarshal json")
+	assert.Nil(err, "couldn't unmarshal config json")
 
-	fmt.Println(config)
+	// Go doesn't understand tilde. So need to expand just in case.
+	src, err := os.ReadFile(utils.ExpandTilde(config.Src.Path))
+	assert.Nil(err, "src contract addresses file couldn't be opened.")
+
+	contractAddresses := make(map[string]string)
+	err = json.Unmarshal(src, &contractAddresses)
+	assert.Nil(err, "couldn't unmarshal src json")
+
+	fmt.Println(contractAddresses)
 }
