@@ -34,5 +34,5 @@ func main() {
 	err = json.Unmarshal(buf, &config)
 	assert.Nil(err, "couldn't unmarshal json")
 
-	fmt.Println("LazyEnvConfig: ", config.Dest.Paths)
+	fmt.Println(config)
 }

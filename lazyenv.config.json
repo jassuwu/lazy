@@ -1,1 +1,20 @@
-{"src":{"path":"~/repos/p2pdotme/contracts-v3","cmd":"bunx hardhat run scripts/deployContracts.ts --network baseSepolia"},"dest":{"paths":["~/repos/p2pdotme/broker-ui","~/repos/p2pdotme/user-app","~/repos/p2pdotme/merchant-app"],"envMapping":{"merchantRegistryAddress":"VITE_MERCHANT_REGISTRY","orderProcessorAddress":"VITE_ORDER_PROCESSOR","p2pxConfigAddress":"VITE_CONFIG_CONTRACT","reputationManagerAddress":"VITE_REPUTATION_MANAGER","usdtAddress":"VITE_USDT_CONTRACT_ADDRESS"}}}
+{
+  "src": {
+    "path": "~/repos/p2pdotme/contracts-v3/contract-addresses.json",
+    "cmd": "bunx hardhat run scripts/deployContracts.ts --network baseSepolia"
+  },
+  "dest": {
+    "paths": [
+      "~/repos/p2pdotme/broker-ui",
+      "~/repos/p2pdotme/user-app",
+      "~/repos/p2pdotme/merchant-app"
+    ],
+    "envMapping": {
+      "merchantRegistryAddress": "VITE_MERCHANT_REGISTRY",
+      "orderProcessorAddress": "VITE_ORDER_PROCESSOR",
+      "p2pxConfigAddress": "VITE_CONFIG_CONTRACT",
+      "reputationManagerAddress": "VITE_REPUTATION_MANAGER",
+      "usdtAddress": "VITE_USDT_CONTRACT_ADDRESS"
+    }
+  }
+}
