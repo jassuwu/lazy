@@ -1,5 +1,5 @@
 build:
-	@go build -o ./bin/lazyenv ./cmd
+	@go build -o ./bin/lazyenv .
 
 run: build
 	@./bin/lazyenv
