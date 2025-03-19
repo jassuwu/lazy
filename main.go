@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -39,6 +40,12 @@ var validCommands = map[string]bool{
 	"drycopy": true,
 }
 
+var validOptions = map[string]bool{
+	"config": true,
+}
+
+var defaultConfigPath = utils.ExpandTilde("~/.config/lazyenv/config.json")
+
 const helpMessage = `lazyenv: chill, dumb, fast cli tool for syncing contract addresses to your .env files
 
   yo, this tool makes life easy - it grabs contract addresses from deployment
@@ -46,7 +53,7 @@ const helpMessage = `lazyenv: chill, dumb, fast cli tool for syncing contract ad
   just drop a 'lazyenv.config.json' in your current directory and we're good to go.
 
 usage:
-  lazyenv <command>
+  lazyenv <command> [options]
 
 commands:
   run     run the source command and update all your .env files in one go
@@ -54,13 +61,17 @@ commands:
   drycopy just print the changes that would be made to the .env files
   help    show this message (you're looking at it now)
 
-examples:
-  lazyenv run             # do everything in one shot
-  lazyenv copy            # just update the env files
-  lazyenv drycopy         # print the changes that would be made to the .env files
-  lazyenv help            # what you're reading right now
+options:
+  --config string   path to the config file (default "~/.config/lazyenv/config.json")
 
-config file (lazyenv.config.json):
+examples:
+  lazyenv run                                # do everything in one shot
+  lazyenv copy                               # just update the env files
+  lazyenv drycopy                            # print the changes that would be made to the .env files
+  lazyenv help                               # what you're reading right now
+  lazyenv run --config ./my-config.json      # use a custom config file
+
+config file (config.json):
   {
     "src": {
       "dir": "~/path/to/source",       # where to find your stuff
@@ -102,8 +113,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if !validOptions[os.Args[2]] {
+		flow.Error(fmt.Sprintf("unknown option '%s'", os.Args[2]))
+		fmt.Println(helpMessage)
+		os.Exit(1)
+	}
+
 	flow.Section("configuration")
-	buf, err := os.ReadFile("lazyenv.config.json")
+	var configPath string
+	flag.StringVar(&configPath, "config", defaultConfigPath, "path to the config file")
+	flag.Parse()
+
+	buf, err := os.ReadFile(configPath)
 	assert.Nil(err, "config file couldn't be opened.")
 
 	config := LazyEnvConfig{}
