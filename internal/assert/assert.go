@@ -1,15 +1,17 @@
 package assert
 
-import "fmt"
+import (
+	"log"
+)
 
 func NotNil(item any, message string) {
 	if item == nil {
-		panic(fmt.Sprintln("skill issue'd by: ", message, item))
+		log.Fatalln("skill issue'd by: ", message, item)
 	}
 }
 
 func Nil(item any, message string) {
 	if item != nil {
-		panic(fmt.Sprintln("skill issue'd by: ", message, item))
+		log.Fatalln("skill issue'd by: ", message, item)
 	}
 }

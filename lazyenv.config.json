@@ -1,6 +1,7 @@
 {
   "src": {
-    "path": "~/repos/p2pdotme/contracts-v3/contract-addresses.json",
+    "dir": "~/repos/p2pdotme/contracts-v3",
+    "fileName": "contract-addresses.json",
     "cmd": "bunx hardhat run scripts/deployContracts.ts --network baseSepolia"
   },
   "dest": {
