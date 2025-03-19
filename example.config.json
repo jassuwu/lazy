@@ -1,21 +1,21 @@
 {
   "src": {
-    "dir": "~/repos/p2pdotme/contracts-v3",
+    "dir": "~/path/to/contracts",
     "fileName": "contract-addresses.json",
-    "cmd": "bunx hardhat run scripts/deployContracts.ts --network baseSepolia"
+    "cmd": "npx hardhat run scripts/deploy.ts --network testnet"
   },
   "dest": {
     "paths": [
-      "~/repos/personal/broker-ui/.env",
-      "~/repos/personal/user-app/.env",
-      "~/repos/personal/merchant-app/.env"
+      "~/projects/frontend-app/.env",
+      "~/projects/admin-panel/.env",
+      "~/projects/mobile-app/.env"
     ],
     "envMapping": {
-      "merchantRegistryAddress": "VITE_MERCHANT_REGISTRY",
-      "orderProcessorAddress": "VITE_ORDER_PROCESSOR",
-      "p2pxConfigAddress": "VITE_CONFIG_CONTRACT",
-      "reputationManagerAddress": "VITE_REPUTATION_MANAGER",
-      "usdtAddress": "VITE_USDT_CONTRACT_ADDRESS"
+      "contractName1": "VITE_CONTRACT_ADDRESS",
+      "contractName2": "NEXT_PUBLIC_CONTRACT_ADDRESS",
+      "contractName3": "REACT_APP_CONTRACT_ADDRESS",
+      "contractName4": "PUBLIC_CONTRACT_ADDRESS",
+      "contractName5": "ENV_CONTRACT_ADDRESS"
     }
   }
 }
