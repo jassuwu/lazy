@@ -2,7 +2,8 @@ package utils
 
 import "strings"
 
-func ExtractArg(args []string, key string) string {
+func ExtractArg(cmd string, key string) string {
+	args := strings.Split(cmd, " ")
 	for i := 0; i < len(args); i++ {
 		if args[i] == key {
 			if i+1 < len(args) {

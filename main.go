@@ -31,24 +31,66 @@ type LazyEnvConfig struct {
 	Dest LEConfigDest `json:"dest"`
 }
 
-const helpMessage = `lazyenv: cli to set .env files with latest contract address vars in P2P.me.
-  has to be configured with a JSON config file like 'lazyenv.config.json'.
+var validCommands = map[string]bool{
+	"run":  true,
+	"copy": true,
+	"help": true,
+}
 
- Usage: lazyenv <command>
+const helpMessage = `lazyenv: chill, dumb, fast cli tool for syncing contract addresses to your .env files
 
- Commands:
-   run    Execute the given command in the source directory and then do the copy.
-   copy   Copy environment variables from 'contract-addresses.json' to the '.env' files in the destination
+  yo, this tool makes life easy - it grabs contract addresses from deployment
+  and updates all your .env files automatically. pretty neat, right?
+  just drop a 'lazyenv.config.json' in your current directory and we're good to go.
 
- Example:
-   lazyenv run
-   lazyenv copy`
+usage:
+  lazyenv <command>
+
+commands:
+  run     run the source command and update all your .env files in one go
+  copy    just update the .env files without running any commands
+  help    show this message (you're looking at it now)
+
+examples:
+  lazyenv run             # do everything in one shot
+  lazyenv copy            # just update the env files
+  lazyenv help            # what you're reading right now
+
+config file (lazyenv.config.json):
+  {
+    "src": {
+      "dir": "~/path/to/source",       # where to find your stuff
+      "fileName": "addresses.json",    # the file with your contract addresses
+      "cmd": "command to run"          # what command to run before copying
+    },
+    "dest": {
+      "paths": ["~/path/to/.env"],     # env files to update
+      "envMapping": {                  # how to map keys to env vars
+        "sourceKey": "ENV_VAR_NAME"
+      }
+    }
+  }`
+
+func executeCommand(cmdString string) {
+	cmdArgs := strings.Split(cmdString, " ")
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	assert.Nil(err, "errored when running the command")
+}
 
 func main() {
-	if len(os.Args) < 2 {
+	if len(os.Args) < 2 || os.Args[1] == "help" {
 		fmt.Println(helpMessage)
 		os.Exit(0)
 	}
+	if !validCommands[os.Args[1]] {
+		fmt.Printf("Error: unknown command '%s'\n\n", os.Args[1])
+		fmt.Println(helpMessage)
+		os.Exit(1)
+	}
+
 	buf, err := os.ReadFile("lazyenv.config.json")
 	assert.Nil(err, "config file couldn't be opened.")
 
@@ -57,14 +99,8 @@ func main() {
 	assert.Nil(err, "couldn't unmarshal config json")
 	fmt.Println("- read the configuration")
 
-	srcCmdArgs := strings.Split(config.Src.Cmd, " ")
 	if os.Args[1] == "run" {
-		cmd := exec.Command(srcCmdArgs[0], srcCmdArgs[1:]...)
-		cmd.Dir = utils.ExpandTilde(config.Src.Dir)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		assert.Nil(err, "errored when running the command in the src directory")
+		executeCommand(config.Src.Cmd)
 	}
 
 	// Go doesn't understand tilde. So need to expand just in case.
@@ -99,7 +135,7 @@ func main() {
 
 		// adding one line for each of the new envVar
 		newFileLines = append(newFileLines, "")
-		newFileLines = append(newFileLines, "# "+utils.ExtractArg(srcCmdArgs, "--network"))
+		newFileLines = append(newFileLines, "# "+utils.ExtractArg(config.Src.Cmd, "--network"))
 		newFileLines = append(
 			newFileLines,
 			"# "+
