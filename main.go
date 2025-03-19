@@ -10,6 +10,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/jassuwu/lazyenv/internal/assert"
+	"github.com/jassuwu/lazyenv/internal/flow"
 	"github.com/jassuwu/lazyenv/internal/utils"
 )
 
@@ -32,9 +33,10 @@ type LazyEnvConfig struct {
 }
 
 var validCommands = map[string]bool{
-	"run":  true,
-	"copy": true,
-	"help": true,
+	"run":     true,
+	"copy":    true,
+	"help":    true,
+	"drycopy": true,
 }
 
 const helpMessage = `lazyenv: chill, dumb, fast cli tool for syncing contract addresses to your .env files
@@ -49,11 +51,13 @@ usage:
 commands:
   run     run the source command and update all your .env files in one go
   copy    just update the .env files without running any commands
+  drycopy just print the changes that would be made to the .env files
   help    show this message (you're looking at it now)
 
 examples:
   lazyenv run             # do everything in one shot
   lazyenv copy            # just update the env files
+  lazyenv drycopy         # print the changes that would be made to the .env files
   lazyenv help            # what you're reading right now
 
 config file (lazyenv.config.json):
@@ -72,58 +76,77 @@ config file (lazyenv.config.json):
   }`
 
 func executeCommand(cmdString string) {
+	flow.Action("running command")
+
 	cmdArgs := strings.Split(cmdString, " ")
 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	err := cmd.Run()
 	assert.Nil(err, "errored when running the command")
+	flow.Success("command completed")
 }
 
 func main() {
+	flow.Start()
+
 	if len(os.Args) < 2 || os.Args[1] == "help" {
 		fmt.Println(helpMessage)
 		os.Exit(0)
 	}
+
 	if !validCommands[os.Args[1]] {
-		fmt.Printf("Error: unknown command '%s'\n\n", os.Args[1])
+		flow.Error(fmt.Sprintf("unknown command '%s'", os.Args[1]))
 		fmt.Println(helpMessage)
 		os.Exit(1)
 	}
 
+	flow.Section("configuration")
 	buf, err := os.ReadFile("lazyenv.config.json")
 	assert.Nil(err, "config file couldn't be opened.")
 
 	config := LazyEnvConfig{}
 	err = json.Unmarshal(buf, &config)
 	assert.Nil(err, "couldn't unmarshal config json")
-	fmt.Println("- read the configuration")
+	flow.Success("config loaded")
 
+	// Execute the command if "run" was specified
 	if os.Args[1] == "run" {
+		flow.Section("source command")
 		executeCommand(config.Src.Cmd)
 	}
 
-	// Go doesn't understand tilde. So need to expand just in case.
-	src, err := os.ReadFile(utils.ExpandTilde(config.Src.Dir + "/" + config.Src.FileName))
+	// Copy operations for both "run" and "copy" commands
+	flow.Section("syncing addresses")
+
+	// Read source file
+	filePath := utils.ExpandTilde(config.Src.Dir + "/" + config.Src.FileName)
+	flow.Info(fmt.Sprintf("source: %s", filePath))
+
+	src, err := os.ReadFile(filePath)
 	assert.Nil(err, "src contract addresses file couldn't be opened.")
 
 	contractAddresses := make(map[string]string)
 	err = json.Unmarshal(src, &contractAddresses)
 	assert.Nil(err, "couldn't unmarshal src json")
-	fmt.Println("- read the src contract-addresses.json")
+	flow.Success(fmt.Sprintf("%d addresses found", len(contractAddresses)))
 
-	fmt.Println("- reading the destination paths:")
+	// Update destination files
+	flow.Section("updating files")
+
 	for _, path := range config.Dest.Paths {
-		fmt.Println("-- reading:", path)
-		dest, err := os.ReadFile(utils.ExpandTilde(path))
+		expandedPath := utils.ExpandTilde(path)
+		flow.FileAction("read", expandedPath)
+
+		dest, err := os.ReadFile(expandedPath)
 		assert.Nil(err, "dest contract addresses file couldn't be opened.")
 
 		newFileLines := make([]string, 0)
 
-		entries := strings.Split(string(dest), "\n") // ["FOO=BAR", "BOO=BAZ", ""]
+		entries := strings.Split(string(dest), "\n")
 	ENTRIES:
 		for _, entry := range entries {
-			// commenting out the existing matching envVars
 			for _, v := range config.Dest.EnvMapping {
 				if strings.HasPrefix(entry, v) {
 					newFileLines = append(newFileLines, "# "+entry)
@@ -133,22 +156,38 @@ func main() {
 			newFileLines = append(newFileLines, entry)
 		}
 
-		// adding one line for each of the new envVar
+		// adding metadata and new env vars
 		newFileLines = append(newFileLines, "")
-		newFileLines = append(newFileLines, "# "+utils.ExtractArg(config.Src.Cmd, "--network"))
-		newFileLines = append(
-			newFileLines,
-			"# "+
-				time.Now().Local().Format("02 January, 2006 15:04:05 IST"),
-		)
+		network := utils.ExtractArg(config.Src.Cmd, "--network")
+		if network != "" {
+			newFileLines = append(newFileLines, "# "+network)
+		}
+
+		timestamp := time.Now().Local().Format("02 Jan 2006 15:04:05")
+		newFileLines = append(newFileLines, "# updated: "+timestamp)
+
 		for k, v := range config.Dest.EnvMapping {
-			newFileLines = append(newFileLines, v+"="+contractAddresses[k])
+			if addr, ok := contractAddresses[k]; ok {
+				newFileLines = append(newFileLines, v+"="+addr)
+			} else {
+				flow.Warn(fmt.Sprintf("missing address for key: %s", k))
+			}
 		}
 		newFileLines = append(newFileLines, "")
 
-		envFile, err := os.Create(utils.ExpandTilde(path))
-		assert.Nil(err, "couldn't 'CREATE' envFile.")
-		defer envFile.Close()
-		envFile.WriteString(strings.Join(newFileLines, "\n"))
+		if os.Args[1] == "drycopy" {
+			flow.FileAction("write", expandedPath)
+			fmt.Println(strings.Join(newFileLines, "\n"))
+			flow.Success("drycopy completed")
+		} else {
+			flow.FileAction("write", expandedPath)
+			envFile, err := os.Create(expandedPath)
+			assert.Nil(err, "couldn't 'CREATE' envFile.")
+			defer envFile.Close()
+			envFile.WriteString(strings.Join(newFileLines, "\n"))
+			flow.Success(fmt.Sprintf("updated %s", path))
+		}
 	}
+
+	flow.Done()
 }
