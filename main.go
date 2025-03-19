@@ -100,8 +100,6 @@ func executeCommand(cmdString string) {
 }
 
 func main() {
-	flow.Start()
-
 	if len(os.Args) < 2 || os.Args[1] == "help" {
 		fmt.Println(helpMessage)
 		os.Exit(0)

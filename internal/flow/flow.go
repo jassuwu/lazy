@@ -25,10 +25,6 @@ func Action(message string) {
 	fmt.Printf("$ %s\n", message)
 }
 
-func Start() {
-	fmt.Println("lazyenv starting")
-}
-
 func Done() {
 	fmt.Println("\nall done")
 }
