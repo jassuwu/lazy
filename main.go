@@ -111,7 +111,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !validOptions[os.Args[2]] {
+	if len(os.Args) > 2 && !validOptions[os.Args[2]] {
 		flow.Error(fmt.Sprintf("unknown option '%s'", os.Args[2]))
 		fmt.Println(helpMessage)
 		os.Exit(1)
