@@ -100,6 +100,7 @@ func executeCommand(cmdString string) {
 }
 
 func main() {
+	fmt.Println(os.Args)
 	if len(os.Args) < 2 || os.Args[1] == "help" {
 		fmt.Println(helpMessage)
 		os.Exit(0)
