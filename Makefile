@@ -1,8 +1,8 @@
 build:
-	@go build -o ./bin/lazyenv .
+	@go build -o ./bin/lazy .
 
 run: build
-	@./bin/lazyenv
+	@./bin/lazy
 
 test:
 	@go test ./...

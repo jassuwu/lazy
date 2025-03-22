@@ -10,27 +10,27 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/jassuwu/lazyenv/internal/assert"
-	"github.com/jassuwu/lazyenv/internal/flow"
-	"github.com/jassuwu/lazyenv/internal/utils"
+	"github.com/jassuwu/lazy/internal/assert"
+	"github.com/jassuwu/lazy/internal/flow"
+	"github.com/jassuwu/lazy/internal/utils"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-type LEConfigSrc struct {
+type LazyConfigSrc struct {
 	Dir      string `json:"dir"`
 	FileName string `json:"fileName"`
 	Cmd      string `json:"cmd"`
 }
 
-type LEConfigDest struct {
+type LazyConfigDest struct {
 	Paths      []string          `json:"paths"`
 	EnvMapping map[string]string `json:"envMapping"`
 }
 
-type LazyEnvConfig struct {
-	Src  LEConfigSrc  `json:"src"`
-	Dest LEConfigDest `json:"dest"`
+type LazyConfig struct {
+	Src  LazyConfigSrc  `json:"src"`
+	Dest LazyConfigDest `json:"dest"`
 }
 
 var validCommands = map[string]bool{
@@ -44,16 +44,15 @@ var validOptions = map[string]bool{
 	"config": true,
 }
 
-var defaultConfigPath = utils.ExpandTilde("~/.config/lazyenv/config.json")
+var defaultConfigPath = utils.ExpandTilde("~/.config/p2pdotme/lazy/config.json")
 
-const helpMessage = `lazyenv: chill, dumb, fast cli tool for syncing contract addresses to your .env files
+const helpMessage = `lazy: chill, dumb, fast cli tool for syncing contract addresses to your .env files
 
   yo, this tool makes life easy - it grabs contract addresses from deployment
   and updates all your .env files automatically. pretty neat, right?
-  just drop a 'lazyenv.config.json' in your current directory and we're good to go.
 
 usage:
-  lazyenv <command> [options]
+  lazy <command> [options]
 
 commands:
   run     run the source command and update all your .env files in one go
@@ -62,14 +61,14 @@ commands:
   help    show this message (you're looking at it now)
 
 options:
-  --config string   path to the config file (default "~/.config/lazyenv/config.json")
+  --config string   path to the config file (default "~/.config/p2pdotme/lazy/config.json")
 
 examples:
-  lazyenv run                                # do everything in one shot
-  lazyenv copy                               # just update the env files
-  lazyenv drycopy                            # print the changes that would be made to the .env files
-  lazyenv help                               # what you're reading right now
-  lazyenv run --config ./my-config.json      # use a custom config file
+  lazy run                                # do everything in one shot
+  lazy copy                               # just update the env files
+  lazy drycopy                            # print the changes that would be made to the .env files
+  lazy help                               # what you're reading right now
+  lazy run --config ./my-config.json      # use a custom config file
 
 config file (config.json):
   {
@@ -125,7 +124,7 @@ func main() {
 	buf, err := os.ReadFile(configPath)
 	assert.Nil(err, "config file couldn't be opened.")
 
-	config := LazyEnvConfig{}
+	config := LazyConfig{}
 	err = json.Unmarshal(buf, &config)
 	assert.Nil(err, "couldn't unmarshal config json")
 	flow.Success("config loaded")

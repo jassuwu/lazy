@@ -1,4 +1,4 @@
-module github.com/jassuwu/lazyenv
+module github.com/jassuwu/lazy
 
 go 1.24.1
 

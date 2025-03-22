@@ -1,4 +1,4 @@
-# lazyenv
+# lazy (OLD && OUTDATED README)
 
 chill, dumb, fast cli for syncing contract addresses non destructively to your `.env` files.
 
