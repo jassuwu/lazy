@@ -8,29 +8,28 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jassuwu/p2pme/internal/assert"
+	"github.com/jassuwu/p2pme/internal/flow"
+	"github.com/jassuwu/p2pme/internal/utils"
 	jsoniter "github.com/json-iterator/go"
-
-	"github.com/jassuwu/lazy/internal/assert"
-	"github.com/jassuwu/lazy/internal/flow"
-	"github.com/jassuwu/lazy/internal/utils"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-type LazyConfigSrc struct {
+type P2PMEConfigSrc struct {
 	Dir      string `json:"dir"`
 	FileName string `json:"fileName"`
 	Cmd      string `json:"cmd"`
 }
 
-type LazyConfigDest struct {
+type P2PMEConfigDest struct {
 	Paths      []string          `json:"paths"`
 	EnvMapping map[string]string `json:"envMapping"`
 }
 
-type LazyConfig struct {
-	Src  LazyConfigSrc  `json:"src"`
-	Dest LazyConfigDest `json:"dest"`
+type P2PMEConfig struct {
+	Src  P2PMEConfigSrc  `json:"src"`
+	Dest P2PMEConfigDest `json:"dest"`
 }
 
 var validCommands = map[string]bool{
@@ -44,15 +43,15 @@ var validOptions = map[string]bool{
 	"config": true,
 }
 
-var defaultConfigPath = utils.ExpandTilde("~/.config/p2pdotme/lazy/config.json")
+var defaultConfigPath = utils.ExpandTilde("~/.config/p2pme.config.json")
 
-const helpMessage = `lazy: chill, dumb, fast cli tool for syncing contract addresses to your .env files
+const helpMessage = `p2pme: cli tool for syncing contract addresses to your .env files
 
   yo, this tool makes life easy - it grabs contract addresses from deployment
   and updates all your .env files automatically. pretty neat, right?
 
 usage:
-  lazy <command> [options]
+  p2pme <command> [options]
 
 commands:
   run     run the source command and update all your .env files in one go
@@ -61,14 +60,14 @@ commands:
   help    show this message (you're looking at it now)
 
 options:
-  --config string   path to the config file (default "~/.config/p2pdotme/lazy/config.json")
+  --config string   path to the config file (default "~/.config/p2pme.config.json")
 
 examples:
-  lazy run                                # do everything in one shot
-  lazy copy                               # just update the env files
-  lazy drycopy                            # print the changes that would be made to the .env files
-  lazy help                               # what you're reading right now
-  lazy run --config ./my-config.json      # use a custom config file
+  p2pme run                                # do everything in one shot
+  p2pme copy                               # just update the env files
+  p2pme drycopy                            # print the changes that would be made to the .env files
+  p2pme help                               # what you're reading right now
+  p2pme run --config ./my-config.json      # use a custom config file
 
 config file (config.json):
   {
@@ -124,7 +123,7 @@ func main() {
 	buf, err := os.ReadFile(configPath)
 	assert.Nil(err, "config file couldn't be opened.")
 
-	config := LazyConfig{}
+	config := P2PMEConfig{}
 	err = json.Unmarshal(buf, &config)
 	assert.Nil(err, "couldn't unmarshal config json")
 	flow.Success("config loaded")
